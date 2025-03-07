@@ -13,7 +13,7 @@ const ProductDetails = () => {
       try {
         const response = await axios(`${import.meta.env.VITE_API_BASE_URL}/api/v1/product/getproductbyid/${id}`);
         setProduct(response.data.data);
-        setMainImage(response.data.data.images[0].replace('\\', '/'));
+        setMainImage(response.data.data.images[0]);
       } catch (error) {
         console.error("Error fetching product details:", error);
       }
@@ -35,7 +35,7 @@ const ProductDetails = () => {
         <div className="bg-gray-100 flex flex-col items-center justify-center p-6 w-full md:w-1/2">
           <div className="relative overflow-hidden rounded-xl">
             <img
-              src={`${import.meta.env.VITE_API_BASE_URL}/${mainImage}`}
+              src={`${mainImage}`}
               alt={product.name}
               className="max-w-full h-96 rounded-xl object-cover"
             />
@@ -44,12 +44,12 @@ const ProductDetails = () => {
             {product.images.map((img, index) => (
               <img
                 key={index}
-                src={`${import.meta.env.VITE_API_BASE_URL}/${img.replace('\\', '/')}`}
+                src={img}
                 alt={`Thumbnail ${index + 1}`}
                 className={`w-16 h-16 object-cover rounded-lg cursor-pointer ${
                   selectedThumbnail === index ? "border-2 border-gray-800" : "border-2 border-transparent"
                 }`}
-                onClick={() => handleThumbnailClick(img.replace('\\', '/'), index)}
+                onClick={() => handleThumbnailClick(img, index)}
               />
             ))}
           </div>

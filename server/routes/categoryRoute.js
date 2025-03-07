@@ -1,7 +1,7 @@
 import express from "express"
-import upload from "../config/multer.js"
 import { verifyToken } from "../middleware/verifyAdminToken.js"
 import { categoryAdd, getAllCategories } from "../controllers/categoryController.js"
+import { upload } from "../config/multer.js"
 
 
 const router=express.Router()

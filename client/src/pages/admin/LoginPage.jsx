@@ -3,10 +3,13 @@ import { useForm } from 'react-hook-form';
 import { Player } from '@lottiefiles/react-lottie-player';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const LoginPage = () => {
-  const { register, handleSubmit } = useForm();
-const navigate=useNavigate()
+  const { register, handleSubmit, formState: { isSubmitting } } = useForm();
+  const navigate = useNavigate();
+
   const onSubmit = async (data) => {
     try {
       console.log('Login credentials:', data);
@@ -16,17 +19,42 @@ const navigate=useNavigate()
         { withCredentials: true }
       );
       console.log("Login successful:", response.data);
-      if(response.data){
-        navigate('/admin/dashboard')
-      }
+
+      // Show success toast
+      toast.success('Login successful!', {
+        position: "bottom-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+
+      // Navigate after a short delay to allow the user to see the success message
+      setTimeout(() => {
+        navigate('/admin/dashboard');
+      }, 1000);
+
     } catch (error) {
       console.error("Login error:", error.response?.data || error.message);
+
+      // Show error toast with the error message from the server if available
+      toast.error(error.response?.data?.message || 'Login failed. Please check your credentials.', {
+        position: "bottom-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
     }
   };
-  
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-indigo-100 to-purple-100">
+      {/* Toast Container positioned at bottom-right */}
+      <ToastContainer position="bottom-right" />
+
       <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-xl shadow-xl">
         <div className="flex flex-col items-center justify-center">
           <Player
@@ -54,7 +82,7 @@ const navigate=useNavigate()
                   type="email"
                   required
                   className="block w-full pl-10 border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 p-4 bg-gray-50"
-                  placeholder="email"
+                  placeholder="Email"
                   {...register('email')}
                 />
               </div>
@@ -80,33 +108,18 @@ const navigate=useNavigate()
             </div>
           </div>
 
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <input
-                id="remember-me"
-                type="checkbox"
-                className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
-            
-              />
-              <label htmlFor="remember-me" className="block ml-2 text-sm text-gray-900">Remember me</label>
-            </div>
-
-            <div className="text-sm">
-              <a href="#" className="font-medium text-indigo-600 hover:text-indigo-500">Forgot your password?</a>
-            </div>
-          </div>
-
           <div>
             <button
               type="submit"
-              className="relative flex justify-center w-full px-4 py-3 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md group hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              disabled={isSubmitting}
+              className="relative flex justify-center w-full px-4 py-3 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md group hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-400 disabled:cursor-not-allowed"
             >
               <span className="absolute inset-y-0 left-0 flex items-center pl-3">
                 <svg className="w-5 h-5 text-indigo-500 group-hover:text-indigo-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                   <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
                 </svg>
               </span>
-              Login
+              {isSubmitting ? 'Logging in...' : 'Login'}
             </button>
           </div>
         </form>

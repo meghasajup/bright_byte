@@ -17,6 +17,11 @@ import EditPage from "../pages/admin/EditPage.jsx";
 import ProfilePage from "../pages/admin/ProfilePage.jsx";
 import CategoryShowPage from "../pages/user/CategoryShowPage.jsx";
 import { AdminAuth } from "./protectedRoutes/AdminAuth.jsx";
+import StockAdd from "../pages/admin/StockAdd.jsx";
+import InvoiceForm from "../pages/admin/InvoiceForm.jsx";
+import InvoiceList from "../pages/admin/InvoiceList.jsx";
+import InvoiceDetails from "../pages/admin/InvoiceDetails.jsx";
+import CategoryPage from "../pages/admin/CategoryPage.jsx";
 
 export const router=createBrowserRouter([
     {
@@ -88,6 +93,26 @@ element:<CategoryShowPage/>
             {
                 path: "my-profile",
                 element: <ProfilePage />
+            },
+            {
+                path: "Stock",
+                element: <StockAdd />
+            },
+            {
+                path: "invoice",
+                element: <InvoiceForm />
+            },
+            {
+                path:"invoice/list",
+                element: <InvoiceList />
+            },
+            {
+                path: 'invoice/listid/:id',
+                element:<InvoiceDetails/>
+            },
+            {
+                path: 'category',
+                element: <CategoryPage />
             }
         ]
     }

@@ -37,7 +37,7 @@ export default function CategoryShowPage() {
         >
           <figure>
             <img
-              src={`${import.meta.env.VITE_API_BASE_URL}/${card.images[0].replace('\\', '/')}`}
+              src={card.images[0]}
               alt={card.name}
               className="h-48 w-full object-cover"
             />

@@ -4,6 +4,8 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken';
 import fs from 'fs';
+import { Category } from "../model/categorySchema.js";
+import { cloudinaryInstance } from "../config/Cloudinary.js";
 
 
 export const register=asyncHandler(async(req,res)=>{
@@ -33,36 +35,62 @@ export const register=asyncHandler(async(req,res)=>{
   
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
   
-    res.cookie('Admintoken', token, { httpOnly: true,  sameSite: 'None',
+    res.cookie('Admintoken', token, { // httpOnly: true,  sameSite: 'None',
       secure: true, secure: process.env.NODE_ENV === 'production' });
   
     res.status(200).json({ success: true, message: 'Admin logged in successfully', token });
   });
 
   export const adminCreateProduct = asyncHandler(async (req, res) => {
-      const { name, price, description, category } = req.body;
-      console.log(req.body);
-      
-      const images = req.files ? req.files.map(file => file.path) : [];
+    const { name, price, description, category, stock, stockNum } = req.body;
+
+    const images = req.files ? req.files.map(file => file.path) : [];
+
+    if (!name || !price || !description || !category || images.length === 0) {
+        return res.status(400).json({
+            status: false,
+            error: 'All fields (name, price, description, category) and at least one image are required.'
+        });
+    }
+
+    const uploadResults = await Promise.all(
+        images.map(image => cloudinaryInstance.uploader.upload(image, { folder: "products" }))
+    );
+
+    const imageUrls = uploadResults.map(result => result.url);
+
+    const existingProduct = await Product.findOne({ name });
+    if (existingProduct) {
+        return res.status(400).json({ message: 'Product already exists' });
+    }
+
+    const newProduct = new Product({ 
+        name, 
+        price, 
+        description, 
+        category, 
+        stock, 
+        stockNum, 
+        images: imageUrls 
+    });
+
+    await newProduct.save();
+
+    res.status(201).json({ message: 'Product created successfully', product: newProduct });
+});
+
+
+  export const getProfile = asyncHandler(async (req, res) => {
+
+    const user = await Admin.findById(req.user.id).select('-password');
+  console.log(req.user);
   
-      if (!name || !price || !description || !category || images.length === 0) {
-          return res.status(400).json({
-              status: false,
-              error: 'All fields (name, price, description, category) and at least one image are required.'
-          });
-      }
-      
-      const existingProduct = await Product.findOne({ name });
-      if (existingProduct) {
-          return res.status(400).json({ message: 'Product already exists' });
-      }
-  
-      const newProduct = new Product({ name, price, description, category, images });
-      await newProduct.save();
-  
-      res.status(201).json({ message: 'Product created successfully', product: newProduct });
+    if (user) {
+      res.json(user);
+    } else {
+      res.status(404).json({ error: 'User not found' });
+    }
   });
-  
 
   
   export const adminGetAllProducts=asyncHandler(async(req,res)=>{
@@ -86,6 +114,19 @@ export const register=asyncHandler(async(req,res)=>{
   
       res.status(200).json({success:true,message:"Product found",data:product})
   })
+
+
+  export const adminGetAllProductsTotal=asyncHandler(async(req,res)=>{
+  
+  
+    const products=await Product.countDocuments()
+    if(!products){
+        return res.status(404).json({message:"No products found"})
+        }
+        res.status(200).json({success: true, message: 'Products list fetched', data: products})
+})
+
+  
   
   export const adminUpdateProduct=asyncHandler(async(req,res)=>{
   const {id}=req.params
@@ -101,6 +142,25 @@ export const register=asyncHandler(async(req,res)=>{
       res.status(200).json({success:true,message:"Product updated successfully",data:updateProduct})
   
   })
+
+
+export const updateProductQuantity= asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const { quantity } = req.body;
+  
+    console.log("dfdfdfdf",req.body);
+    
+    const product = await Product.findById(id);
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+  
+    product.stockNum -= quantity; // Assuming you have a `stock` field
+    await product.save();
+  
+    res.json({ message: 'Stock updated successfully' });
+  })
+  
   
   export const adminDeleteProduct = asyncHandler(async (req, res) => {
       const { id } = req.params;
@@ -139,6 +199,64 @@ export const register=asyncHandler(async(req,res)=>{
 
 
 } )
+
+
+
+export const adminCategoryAdd = asyncHandler(async (req, res) => {
+  try {
+      const { name, description } = req.body;
+      const image = req.file; // Single upload with Multer
+
+      if (!image) {
+          return res.status(400).json({ success: false, message: "Image is required" });
+      }
+
+      const existingCategory = await Category.findOne({ name });
+      if (existingCategory) {
+          return res.status(400).json({ success: false, message: "Category already exists" });
+      }
+
+      const uploadResult = await cloudinaryInstance.uploader.upload(image.path, { folder: "category" });
+
+      const newCategory = new Category({
+          name,
+          description,
+          image: uploadResult.secure_url // Use Cloudinary URL
+      });
+
+      await newCategory.save();
+      res.status(201).json({ success: true, message: "Category created successfully" });
+  } catch (error) {
+      console.error("Error creating category:", error);
+      res.status(500).json({ success: false, message: "Internal server error" });
+  }
+});
+
+
+export const getAllCategories = asyncHandler(async (req, res) => {
+    try {
+        const categories = await Category.find();
+        res.status(200).json({ success: true, categories });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+
+export const deleteCategory = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  const category = await Category.findById(id);
+
+  if (!category) {
+      return res.status(404).json({ success: false, message: 'Category not found' });
+  }
+
+  await category.deleteOne();
+
+  res.status(200).json({ success: true, message: 'Category deleted successfully' });
+});
+
 
 
 export const logout = asyncHandler(async (req, res) => {

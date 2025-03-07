@@ -5,6 +5,7 @@ import image from '../../assets/All products.jpg';
 import CategorySection from './Category';
 import { Image } from 'antd';
 import axios from 'axios';
+
 // Background particles component
 const ParticleBackground = () => {
   const particles = Array.from({ length: 50 });
@@ -48,7 +49,7 @@ const LatestProductSection = () => {
     const fetchProducts = async () => {
       try {
         const response = await axios(`${import.meta.env.VITE_API_BASE_URL}/api/v1/product/getallProduct`);
-        const latestProducts = response.data.data.slice(-8); // Get the last 8 products
+        const latestProducts = response.data.data.slice(-4); // Get the last 4 products
         setCategories(latestProducts);
         console.log("Latest products:", latestProducts);
       } catch (error) {
@@ -57,7 +58,7 @@ const LatestProductSection = () => {
     };
     fetchProducts();
   }, []);
-  
+
 
   return (
     <section className="relative py-32 overflow-hidden">
@@ -81,14 +82,17 @@ const LatestProductSection = () => {
               <Image
                 width="100%"
                 height="100"
-                src={`${import.meta.env.VITE_API_BASE_URL}/${product.images[0].replace('\\', '/')}`}
+                src={product.images[0]}
                 alt={product.name}
                 className="object-cover w-full h-full"
               />
+              <div className="p-4 bg-white">
+                <h3 className="text-lg font-semibold text-gray-900 truncate">{product.name}</h3>
+              </div>
             </div>
           ))}
         </div>
- 
+
       </div>
     </section>
   );
@@ -223,8 +227,8 @@ const LatestProductCard = ({ LatestProduct, index }) => {
 const HomePage = () => {
   return (
     <>
-      {/* Hero Section */}
-      <div className="relative min-h-screen w-full overflow-hidden">
+      {/* Hero Section - Added m-0 and p-0 to remove unwanted gaps */}
+      <div className="relative min-h-screen w-full overflow-hidden m-0 p-0">
         {/* Background image with animated overlay */}
         <motion.div
           initial={{ scale: 1.2, opacity: 0.5 }}
@@ -257,8 +261,8 @@ const HomePage = () => {
         {/* Animated particles */}
         <ParticleBackground />
 
-        {/* Main Content */}
-        <div className="relative min-h-screen flex items-center px-4 sm:px-6 lg:px-8">
+        {/* Main Content - Adjusted to make sure there's no extra padding */}
+        <div className="relative min-h-screen flex items-center px-4 sm:px-6 lg:px-8 m-0 pt-0">
           <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
             {/* Left Column */}
             <motion.div
@@ -400,7 +404,7 @@ const HomePage = () => {
                 </motion.div>
 
                 <motion.div
-                  className="absolute z-20 w-64 h-64 rounded-2xl overflow-hidden shadow-2xl shadow-purple-200  p-6"
+                  className="absolute z-20 w-64 h-64 rounded-2xl overflow-hidden shadow-2xl shadow-purple-200 p-6"
                   initial={{ rotate: 5 }}
                   animate={{
                     rotate: [5, -5, 5],
@@ -441,7 +445,7 @@ const HomePage = () => {
                 {[...Array(3)].map((_, i) => (
                   <motion.div
                     key={i}
-                    className="absolute z-30 w-16 h-16 rounded-full  shadow-2xl flex items-center justify-center"
+                    className="absolute z-30 w-16 h-16 rounded-full shadow-2xl flex items-center justify-center"
                     animate={{
                       y: [0, -15, 0],
                       x: [0, 10, 0],
@@ -471,11 +475,12 @@ const HomePage = () => {
         </div>
       </div>
 
-      {/* Latest Section */}
-      <LatestProductSection />
-  
       {/* Category Section */}
       <CategorySection />
+
+       {/* Latest Section */}
+       <LatestProductSection />
+
     </>
   );
 };

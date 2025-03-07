@@ -2,8 +2,6 @@ import { Product } from "../model/productSchema.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import fs from 'fs';
 
-
-
 export const createProduct = asyncHandler(async (req, res) => {
     const { name, price, description, category } = req.body;
     const images = req.files ? req.files.map(file => file.path) : [];

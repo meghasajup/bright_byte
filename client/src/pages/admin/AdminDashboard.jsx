@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts';
 import { Package, DollarSign, BarChart2 } from 'lucide-react';
 import Navbar from '../../components/Admin/Navbar.jsx';
+import axios from 'axios';
 
 const AdminDashboard = () => {
   const [isMobile, setIsMobile] = useState(false);
-
+  const [count, setCount] = useState()
+  const [data, setData] = useState([])
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768);
@@ -40,6 +42,33 @@ const AdminDashboard = () => {
     { name: 'Dec', sales: 7800 },
   ];
 
+  //pice chart
+  useEffect(() => {
+    const fetchCount = async () => {
+      try {
+        const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/v1/admin/getallProduct`, { withCredentials: true });
+        const filteredData = response.data.data.map(product => ({
+          name: product.name,
+          quantity: product.stockNum
+        }));
+        console.log("Filtered Data:", filteredData);
+        setData(filteredData)
+      } catch (error) {
+        console.error('Error fetching product count:', error);
+      }
+    };
+
+    fetchCount();
+  }, []);
+
+
+  const COLORS = [
+    '#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#ff4242', '#e70feb', '#1e3e3e',
+    '#A52A2A', '#5F9EA0', '#7FFF00', '#D2691E', '#FF7F50', '#6495ED', '#DC143C',
+    '#8A2BE2', '#20B2AA'
+  ];
+
+
   // Function to determine bar color based on sales value
   const getBarColor = (value) => {
     if (value < 2000) {
@@ -51,8 +80,21 @@ const AdminDashboard = () => {
     }
   };
 
-  // Total number of products
-  const totalProducts = products.length;
+  useEffect(() => {
+    const fetchCount = async () => {
+      try {
+        const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/v1/admin/productcount`, { withCredentials: true });
+        setCount(response.data.data)
+        // console.log(response.data.data);
+      } catch (error) {
+        console.error('Error fetching product count:', error);
+      }
+    };
+
+    fetchCount();
+  }, []);
+
+
 
   // Total sales this month (sample data)
   const currentMonthSales = salesData[new Date().getMonth()].sales;
@@ -78,7 +120,7 @@ const AdminDashboard = () => {
               </div>
               <div>
                 <h2 className="text-gray-500 text-xs md:text-sm">Total Products</h2>
-                <p className="text-2xl md:text-3xl font-bold">{totalProducts}</p>
+                <p className="text-2xl md:text-3xl font-bold">{count}</p>
               </div>
             </div>
 
@@ -174,6 +216,31 @@ const AdminDashboard = () => {
                 </ResponsiveContainer>
               </div>
             </div>
+
+            <div className="bg-white rounded-lg shadow p-3 md:p-4">
+              <h2 className="text-base md:text-lg font-semibold mb-2 md:mb-4">Products Overview</h2>
+              <div className="h-48 md:h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={data}
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="quantity"
+                      label
+                    >
+                      {data.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
           </div>
 
           {/* Link to Products Page */}

@@ -53,7 +53,7 @@ const handleProductClick = (name) => {
                         transition={{ duration: 0.5 }}
                     >
                         <img
-                           src={`${import.meta.env.VITE_API_BASE_URL}/${category.image.replace('\\', '/')}`}
+                           src={category.image}
                             alt={category.name}
                             className="w-full h-full object-cover"
                         />

@@ -2,14 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { PlusCircle, X, ArrowLeft, Save, Image as ImageIcon } from 'lucide-react';
 import axios from 'axios';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const AddProduct = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const isEditing = !!id;
-const [categories,setCategories]=useState([])
-  // const categories = ['Electronics', 'Audio', 'Wearables', 'Accessories', 'Smart Home'];
-
+  const [categories, setCategories] = useState([]);
 
   useEffect(() => {
     const category = async () => {
@@ -21,10 +21,14 @@ const [categories,setCategories]=useState([])
         setCategories(response.data.categories);
       } catch (error) {
         console.log(error);
+        toast.error("Failed to load categories", {
+          position: "bottom-right",
+          autoClose: 3000
+        });
       }
     };
 
-    category(); // Now it's called inside the useEffect
+    category();
   }, []);
 
   const [formData, setFormData] = useState({
@@ -32,6 +36,7 @@ const [categories,setCategories]=useState([])
     price: '',
     description: '',
     category: '',
+    stock: '',
     image: null
   });
 
@@ -79,30 +84,49 @@ const [categories,setCategories]=useState([])
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
 
     const data = new FormData();
     data.append('name', formData.name);
     data.append('price', formData.price);
     data.append('description', formData.description);
     data.append('category', formData.category);
+    data.append('stock', formData.stock);
     if (image1) data.append('images', image1);
     if (image2) data.append('images', image2);
 
     try {
       if (isEditing) {
         await axios.put(`${import.meta.env.VITE_API_BASE_URL}/api/v1/admin/products/${id}`, data, {
-          headers: { 'Content-Type': 'multipart/form-data' }
+          headers: { 'Content-Type': 'multipart/form-data' },
+          withCredentials: true
+        });
+        toast.success("Product updated successfully!", {
+          position: "bottom-right",
+          autoClose: 3000
         });
       } else {
-        await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/v1/admin/admincreateProduct`, data,{withCredentials:true}, {
-          headers: { 'Content-Type': 'multipart/form-data' }
+        await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/v1/admin/admincreateProduct`, data, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+          withCredentials: true
+        });
+        toast.success("Product added successfully!", {
+          position: "bottom-right",
+          autoClose: 3000
         });
       }
-      alert(`Product ${isEditing ? 'updated' : 'added'} successfully!`);
-      navigate('/admin/products-list');
+      setFormSubmitted(true);
+      setTimeout(() => {
+        navigate('/admin/products-list');
+      }, 1500);
     } catch (error) {
       console.error('Error submitting form:', error);
-      alert('Failed to submit product.');
+      toast.error(error.response?.data?.message || error.response?.data?.error || "Failed to submit product. Please try again.", {
+        position: "bottom-right",
+        autoClose: 5000
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -141,12 +165,24 @@ const [categories,setCategories]=useState([])
   return (
     <div className="flex bg-gradient-to-br from-gray-50 to-gray-200 min-h-screen">
       <div className={'ml-0 md:ml-64 flex-1 p-4 md:p-6 mt-1'}>
+        <ToastContainer
+          position="bottom-right"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="light"
+        />
 
         <header className={`bg-white rounded-lg shadow-md p-4 md:p-6 mb-4 md:mb-6 mt-6 transform transition-all duration-500 ${showForm ? 'translate-y-0 opacity-100' : '-translate-y-4 opacity-0'}`}>
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2 md:space-x-3">
               <button onClick={() => navigate('/admin/products')} className="p-2 rounded-full hover:bg-gray-100 transition-colors">
-                <ArrowLeft className="h-4 w-4 md:h-5 md:w-5 text-gray-600" />
+                <a href="/admin/dashboard"><ArrowLeft className="h-4 w-4 md:h-5 md:w-5 text-gray-600" /></a>
               </button>
               <h1 className="text-xl md:text-2xl font-bold text-gray-800">{isEditing ? 'Edit Product' : 'Add New Product'}</h1>
             </div>
@@ -191,8 +227,8 @@ const [categories,setCategories]=useState([])
                 <label className="block text-sm font-medium text-gray-700">Category</label>
                 <select name="category" value={formData.category} onChange={handleInputChange} className="w-full p-2 md:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow duration-200 appearance-none bg-white" required >
                   <option value="">Select a category</option>
-                  {categories.map((category) => (
-                    <option key={category} value={category.name}> {category.name} </option>
+                  {categories.map((category, index) => (
+                    <option key={index} value={category.name}> {category.name} </option>
                   ))}
                 </select>
               </div>
@@ -204,7 +240,17 @@ const [categories,setCategories]=useState([])
                 onMouseLeave={() => setActiveField('')}
               >
                 <label className="block text-sm font-medium text-gray-700">Stock</label>
-                <input type="number" name="stock" value={formData.stock} onChange={handleInputChange} className="w-full p-2 md:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow duration-200" placeholder="0" required />
+                <select
+                  name="stock"
+                  value={formData.stock}
+                  onChange={handleInputChange}
+                  className="w-full p-2 md:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow duration-200 appearance-none bg-white"
+                  required
+                >
+                  <option value="">Select a stock</option>
+                  <option value="In stock">In stock</option>
+                  <option value="Out of stock">Out of stock</option>
+                </select>
               </div>
             </div>
 
@@ -226,7 +272,7 @@ const [categories,setCategories]=useState([])
             <div className={`flex justify-end gap-3 transition-all duration-300 delay-400 transform 
               ${showForm ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}
             >
-              <button type="button" onClick={() => navigate('/admin/products')} className="px-3 py-2 md:px-4 md:py-2 flex items-center space-x-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors duration-200" >
+              <button type="button" onClick={() => navigate('/admin/products-list')} className="px-3 py-2 md:px-4 md:py-2 flex items-center space-x-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors duration-200" >
                 <X className="h-4 w-4" />
                 <span>Cancel</span>
               </button>

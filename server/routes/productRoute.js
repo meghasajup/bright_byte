@@ -1,6 +1,7 @@
 import express from "express"
 import { createProduct, deleteProduct, getAllProducts, getProductsById, updateProduct } from "../controllers/productController.js"
-import upload from "../config/multer.js"
+import { updateProductQuantity } from "../controllers/adminController.js"
+import { upload } from "../config/multer.js"
 
 const router=express.Router()
 

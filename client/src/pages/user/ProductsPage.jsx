@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { motion } from 'framer-motion';
+import { Card } from "flowbite-react";
 
 const ProductsPage = () => {
   const [products, setProducts] = useState([]);
@@ -25,33 +27,57 @@ const ProductsPage = () => {
   };
 
   return (
-    <div className="flex flex-wrap justify-center gap-4 bg-gray-50 p-4">
-      {products.map((card) => (
-        <div 
-          key={card._id} 
-          className="card bg-base-100 w-80 shadow-xl cursor-pointer" 
-          onClick={() => handleProductClick(card._id)}
-        >
-          <figure>
-            <img
-              src={`${import.meta.env.VITE_API_BASE_URL}/${card.images[0].replace('\\', '/')}`}
-              alt={card.name}
-              className="h-48 w-full object-cover"
-            />
-          </figure>
-          <div className="card-body bg-gray-50 text-black">
-            <h2 className="card-title">
-              {card.name}
-              <div className="badge badge-secondary">NEW</div>
-            </h2>
-            <p>{card.description}</p>
-            <p className="text-lg font-semibold">₹{card.price}</p>
-            <div className="card-actions justify-end">
-              <div className="badge badge-outline">{card.category}</div>
-            </div>
-          </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-100 py-16">
+      <motion.div
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="container mx-auto px-4 max-w-7xl"
+      >
+        <h1 className="text-3xl font-bold text-center mb-12 text-gray-800">
+          All Products
+        </h1>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 place-items-center">
+          {products.map((product, index) => (
+            <motion.div
+              key={product._id}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{
+                duration: 0.5,
+                delay: index * 0.1
+              }}
+              whileHover={{
+                scale: 1.05,
+                boxShadow: "0 10px 20px rgba(0,0,0,0.12)"
+              }}
+              className="transform transition-all duration-300 ease-in-out w-full max-w-xs cursor-pointer"
+              onClick={() => handleProductClick(product._id)}
+            >
+              <Card
+                imgSrc={product.images[0]}
+                imgAlt={product.name}
+                className="w-full"
+              >
+                <h5 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-black">
+                  {product.name}
+                </h5>
+                <p className="font-normal text-gray-700 dark:text-gray-400 line-clamp-2">
+                  {product.description}
+                </p>
+                <div className="flex justify-between items-center">
+                  <span className="text-xl font-bold text-gray-900 dark:text-black">
+                    ₹{product.price}
+                  </span>
+                  <span className="text-sm text-gray-600">
+                    {product.stock}
+                  </span>
+                </div>
+              </Card>
+            </motion.div>
+          ))}
         </div>
-      ))}
+      </motion.div>
     </div>
   );
 };
