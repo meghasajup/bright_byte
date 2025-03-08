@@ -4,20 +4,14 @@ import { useParams } from 'react-router-dom';
 import companyLogo from '../../assets/bright_byte-removebg-preview.png';
 import { motion } from 'framer-motion';
 
-// Add a global style for print that hides the navbar
+// Global style for print that hides unnecessary elements
 const PrintStyles = () => (
   <style>
     {`
       @media print {
-        nav, .navbar, .sidebar, header, .header, #header, #navbar, .nav-container {
-          display: none !important;
-        }
         body, html {
           padding: 0 !important;
           margin: 0 !important;
-        }
-        .ml-0, .ml-64 {
-          margin-left: 0 !important;
         }
         .print-container {
           position: absolute;
@@ -120,8 +114,8 @@ const InvoiceDetails = () => {
   return (
     <>
       <PrintStyles />
-      <div className="flex min-h-screen bg-gradient-to-br from-green-50 to-blue-100 print:bg-white print:from-white print:to-white print:bg-[none] print:h-full">
-        <div className="ml-0 md:ml-64 flex-1 p-4 md:p-6 mt-1 w-full print:ml-0 print:mt-0 print:p-0 print-container">
+      <div className="flex min-h-screen bg-gradient-to-br from-green-50 to-blue-100 print:bg-white print:from-white print:to-white print:bg-none print:h-full">
+        <div className="flex-1 p-4 md:p-6 mt-1 w-full print:p-0 print-container">
           <motion.div
             className="max-w-4xl mx-auto bg-white shadow-2xl p-8 rounded-2xl backdrop-blur-sm bg-opacity-90 print:shadow-none print:p-1 print:max-w-full"
             initial="hidden"
@@ -230,8 +224,7 @@ const InvoiceDetails = () => {
                     {invoice.items.map((item, index) => (
                       <motion.tr
                         key={index}
-                        className={`border-b transition-colors duration-300 hover:bg-gray-50 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
-                          }`}
+                        className={`border-b transition-colors duration-300 hover:bg-gray-50 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.5 + (index * 0.1) }}
@@ -248,7 +241,7 @@ const InvoiceDetails = () => {
                         </td>
                         <td className="p-3">
                           <span className="inline-block bg-blue-100 text-blue-800 text-center rounded-full px-2 py-1 min-w-6 text-sm print:bg-white print:border print:border-gray-300">
-                            {item.gstPercentage}%
+                            {item.gstPercentage}-
                           </span>
                         </td>
                         <td className="p-3 font-semibold text-green-700 print:text-gray-800">₹{item.grossValue}</td>
@@ -274,7 +267,7 @@ const InvoiceDetails = () => {
                   <span className="font-medium">₹ {invoice.gstAmount || (invoice.grandTotal - invoice.taxableAmount).toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between py-3 mt-2">
-                  <span className="text-xl font-bold text-gray-700">Total:</span>
+                  <span className="text-xl font-bold text-gray-700">Grand Total:</span>
                   <motion.span
                     className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-green-600 to-blue-600 print:text-green-700"
                     initial={{ scale: 0.8 }}
@@ -292,24 +285,17 @@ const InvoiceDetails = () => {
               </div>
             </motion.div>
 
-            {/* Terms Section */}
+            {/* Thank You Section */}
             <motion.div
-              className="border-t mt-8 pt-4"
-              variants={itemVariants}
-            >
-              <div className="bg-gray-50 p-4 rounded-lg border-l-4 border-gray-300 print:bg-white">
-                <p className="text-gray-600 italic text-sm">{invoice.terms || 'Thank you for your business!'}</p>
-              </div>
-            </motion.div>
-
-            {/* Powered by Veltek Industries */}
-            <motion.div
-              className="text-center mt-6 mb-2"
+              className="mt-10 pt-6 border-t text-center"
               variants={fadeInVariants}
             >
-              <div className="inline-flex items-center px-3 py-1 rounded-full bg-gradient-to-r from-gray-100 to-gray-200 shadow-sm print:bg-white print:shadow-none">
-                <p className="text-gray-600 text-sm font-medium">Powered by Veltek Industries</p>
-                <span className="ml-1 w-2 h-2 bg-green-500 rounded-full animate-pulse print:hidden"></span>
+              <div className="w-full p-6 rounded-lg bg-gradient-to-r from-green-600 to-blue-600 text-white">
+                <h3 className="text-2xl font-bold mb-2">Thank You!</h3>
+                <p className="mb-3">For any questions concerning, please contact us.</p>
+                <p className="text-sm flex items-center justify-center">
+                  Powered by <span className="font-italic ml-1"><i>Veltek Industries</i></span>
+                </p>
               </div>
             </motion.div>
 
@@ -330,7 +316,6 @@ const InvoiceDetails = () => {
                 Print Invoice
               </button>
             </motion.div>
-
           </motion.div>
         </div>
       </div>
