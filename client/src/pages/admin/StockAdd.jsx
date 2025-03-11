@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Table, Input, Button, Modal, message, Typography, Skeleton, Badge } from 'antd';
+import { Table, Input, Button, Modal, message, Typography, Skeleton, Badge ,Alert} from 'antd';
 import { EditOutlined, InboxOutlined, ReloadOutlined } from '@ant-design/icons';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -32,6 +32,26 @@ const StockAdd = () => {
   useEffect(() => {
     fetchProducts();
   }, []);
+
+
+
+  const notifyAdmin = async (product) => {
+    try {
+      await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/v1/notify/make`, {
+        productId: product._id,
+        productName: product.name
+      });
+      message.success(`Admin notified about ${product.name} being out of stock.`);
+    } catch (error) {
+      console.error("Failed to notify admin:", error);
+      message.error("Failed to notify admin. Please try again later.");
+    }
+  };
+
+
+
+
+
 
   const openModal = (product) => {
     setCurrentProduct(product);
@@ -78,6 +98,8 @@ const StockAdd = () => {
     product.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+
+  const outOfStockProducts = products.filter(product => product.stockNum <= 0);
   const getStockStatus = (stock) => {
     if (stock <= 0) return { status: 'error', text: 'Out of Stock' };
     if (stock < 10) return { status: 'warning', text: 'Low Stock' };
@@ -107,8 +129,9 @@ const StockAdd = () => {
       title: 'Stock',
       dataIndex: 'stockNum',
       key: 'stock',
-      render: (stockNum) => {
+      render: (stockNum,record) => {
         const { status, text } = getStockStatus(stockNum);
+        if (stockNum <= 0) notifyAdmin(record);
         return (
           <Badge status={status} text={
             <span>
@@ -144,12 +167,12 @@ const StockAdd = () => {
       transition={{ duration: 0.5 }}
       className="ml-0 md:ml-64 flex-1 p-4 md:p-6 mt-1"
     >
+       
       <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-lg overflow-hidden">
         <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-6">
           <Title level={2} className="text-center text-white mb-2">Product Stock Management</Title>
           <Text className="text-center block text-white opacity-80">Manage your inventory with ease</Text>
         </div>
-
         <div className="p-6">
           <div className="flex justify-between items-center mb-6">
             <Input
@@ -169,7 +192,15 @@ const StockAdd = () => {
               Refresh
             </Button>
           </div>
-
+          {outOfStockProducts.length > 0 && (
+        <Alert
+          message="Attention: Some products are out of stock!"
+          type="error"
+          showIcon
+          closable
+          style={{ marginBottom: '20px' }}
+        />
+      )}
           <AnimatePresence>
             {loading ? (
               <Skeleton active paragraph={{ rows: 5 }} />

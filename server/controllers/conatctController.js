@@ -1,7 +1,3 @@
-
-
-
-
 import nodemailer from 'nodemailer';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { Contact } from '../model/contactSchema.js';
@@ -28,28 +24,83 @@ export const newContact = asyncHandler(async (req, res) => {
     });
 
     const mailOptions = {
-        from: process.env.EMAIL_USER,
-        to: 'josephjeswin20@gmail.com', // Where you want to receive the contact form data
+        from: email,
+        to: process.env.EMAIL_USER,
         subject: `New Contact Form Submission: ${subject}`,
         html: `
-        <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto;">
-            <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px;">
-                <h2 style="color: #007bff; text-align: center;">New Contact Form Submission</h2>
-                <hr style="border: 1px solid #ddd;">
-                <p><strong>Name:</strong> ${name}</p>
-                <p><strong>Email:</strong> ${email}</p>
-                <p><strong>Subject:</strong> ${subject}</p>
-                <p><strong>Message:</strong></p>
-                <div style="background-color: #fff; padding: 15px; border-radius: 5px; border: 1px solid #ddd;">
-                    <p style="margin: 0;">${message}</p>
+          <html>
+            <head>
+              <style>
+                body {
+                  font-family: 'Poppins', sans-serif;
+                  background-color: #f0f8ff;
+                  margin: 0;
+                  padding: 0;
+                }
+                .container {
+                  max-width: 600px;
+                  margin: 50px auto;
+                  background: #ffffff;
+                  border-radius: 16px;
+                  padding: 40px;
+                  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+                }
+                .header {
+                  text-align: center;
+                  color: #0047ab;
+                  font-size: 28px;
+                  margin-bottom: 20px;
+                }
+                .divider {
+                  border: none;
+                  border-top: 2px solid #ddd;
+                  margin: 25px 0;
+                }
+                .info p {
+                  font-size: 18px;
+                  margin: 10px 0;
+                  color: #333;
+                }
+                .info strong {
+                  color: #0047ab;
+                }
+                .message-box {
+                  background: #eef7ff;
+                  padding: 20px;
+                  border: 1px solid #cce7ff;
+                  border-radius: 12px;
+                  margin-top: 20px;
+                  font-size: 16px;
+                }
+                .footer {
+                  text-align: center;
+                  font-size: 14px;
+                  color: #666;
+                  margin-top: 40px;
+                }
+              </style>
+            </head>
+            <body>
+              <div class="container">
+                <h2 class="header">New Contact Form Submission</h2>
+                <hr class="divider" />
+                <div class="info">
+                  <p><strong>Name:</strong> ${name}</p>
+                  <p><strong>Email:</strong> ${email}</p>
+                  <p><strong>Subject:</strong> ${subject}</p>
                 </div>
-            </div>
-            <div style="text-align: center; margin-top: 20px; font-size: 12px; color: #777;">
+                <div class="message-box">
+                  <p>${message}</p>
+                </div>
+              </div>
+              <div class="footer">
                 <p>This email was sent from your website's contact form.</p>
-            </div>
-        </div>
+              </div>
+            </body>
+          </html>
         `
-    };
+      };
+      
 
     try {
         await transporter.sendMail(mailOptions);

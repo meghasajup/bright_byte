@@ -36,11 +36,16 @@ export const register=asyncHandler(async(req,res)=>{
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
   
     res.cookie('Admintoken', token, { // httpOnly: true,  sameSite: 'None',
-      secure: true, secure: process.env.NODE_ENV === 'production' });
+      secure: true,  
+      
+      secure: process.env.NODE_ENV === 'production' });
   
     res.status(200).json({ success: true, message: 'Admin logged in successfully', token });
   });
 
+
+
+  
   export const adminCreateProduct = asyncHandler(async (req, res) => {
     const { name, price, description, category, stock, stockNum } = req.body;
 
@@ -135,7 +140,11 @@ export const register=asyncHandler(async(req,res)=>{
       id,
       req.body,
       { new:true, runValidators:true}
+
+   
+      
   )
+  console.log(req.body);
   if(!updateProduct){
       return res.status(404).json({success:false,message:"Product not found"})
       }

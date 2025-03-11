@@ -8,6 +8,7 @@ const AdminDashboard = () => {
   const [isMobile, setIsMobile] = useState(false);
   const [count, setCount] = useState()
   const [data, setData] = useState([])
+  const [salesDatda, setSalesData] = useState([]);
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768);
@@ -26,21 +27,59 @@ const AdminDashboard = () => {
     { id: 4, name: 'Bluetooth Speaker', description: 'Waterproof portable speaker', price: 79.99, image1: '/api/placeholder/300/200', image2: '/api/placeholder/300/200', stock: 23 },
   ]);
 
+
+
+  const fetchSalesData = async () => {
+    try {
+      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/v1/invoice/getallinvoice`);
+      console.log(response.data.invoices);
+  
+      const salesData = response.data.invoices.map(item => ({
+        date: item.date,
+        quantity: item.items.reduce((total, currentItem) => total + Number(currentItem.quantity), 0),
+        price:item.grandTotal
+      }));
+  
+      setSalesData(salesData);
+      console.log("Sales Data:", salesData);
+    } catch (error) {
+      console.error('Error fetching sales data:', error);
+    }
+  };
+  
+  // Use useEffect to control when it fetches
+  useEffect(() => {
+    fetchSalesData();
+  }, []);
+ 
+  
+ 
+
   // Sample sales data for charts
-  const salesData = [
-    { name: 'Jan', sales: 4000 },
-    { name: 'Feb', sales: 3000 },
-    { name: 'Mar', sales: 5000 },
-    { name: 'Apr', sales: 2780 },
-    { name: 'May', sales: 1890 },
-    { name: 'Jun', sales: 2390 },
-    { name: 'Jul', sales: 3490 },
-    { name: 'Aug', sales: 4200 },
-    { name: 'Sep', sales: 5100 },
-    { name: 'Oct', sales: 4300 },
-    { name: 'Nov', sales: 6500 },
-    { name: 'Dec', sales: 7800 },
+  
+  const monthNames = [
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
   ];
+  
+  const salesByMonth = salesDatda.reduce((acc, { date, quantity }) => {
+    const monthIndex = new Date(date).getMonth();
+    const year = new Date(date).getFullYear();
+  
+    if (year === 2025) { // Filter only for the year 2025
+      const monthName = monthNames[monthIndex];
+      acc[monthName] = (acc[monthName] || 0) + quantity;
+    }
+  
+    return acc;
+  }, {});
+  
+  const salesData = monthNames.map(month => ({
+    name: month,
+    sales: salesByMonth[month] || 0
+  }));
+  
+  console.log("fffffffffffffffffffffff",salesData);
+  
 
   //pice chart
   useEffect(() => {
@@ -130,7 +169,7 @@ const AdminDashboard = () => {
               </div>
               <div>
                 <h2 className="text-gray-500 text-xs md:text-sm">Monthly Sales</h2>
-                <p className="text-2xl md:text-3xl font-bold">₹{currentMonthSales.toLocaleString()}</p>
+                <p className="text-2xl md:text-3xl font-bold">{currentMonthSales.toLocaleString()}</p>
               </div>
             </div>
 
@@ -139,10 +178,10 @@ const AdminDashboard = () => {
                 <BarChart2 size={24} className="text-purple-600" />
               </div>
               <div>
-                <h2 className="text-gray-500 text-xs md:text-sm">Avg. Product Price</h2>
+                <h2 className="text-gray-500 text-xs md:text-sm">Avg. Total Price</h2>
                 <p className="text-2xl md:text-3xl font-bold">
                   ₹{products.length > 0
-                    ? (products.reduce((sum, product) => sum + product.price, 0) / products.length).toFixed(2)
+                    ? (salesDatda.reduce((sum, product) => sum + product.price, 0) / products.length).toFixed(2)
                     : '0.00'}
                 </p>
               </div>
